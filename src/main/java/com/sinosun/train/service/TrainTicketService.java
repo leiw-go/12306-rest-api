@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.sinosun.train.constants.UrlConstant;
 import com.sinosun.train.datamap.SeatTypeMap;
 import com.sinosun.train.datamap.TrainCodeTrainNoMap;
 import com.sinosun.train.enums.train.PassengerType;
@@ -38,11 +39,8 @@ public class TrainTicketService {
     private TrainStationService trainStationService;
 
     private static final String DATE_FORMAT = "yyyy-MM-dd";
-
-    private static String baseUrl = "https://kyfw.12306.cn";
-    private static String publicName = "/otn";
     private static String leftTicketUrl = "leftTicket/queryA";
-    private static String getTicketListUrlFmt = baseUrl + publicName +
+    private static String getTicketListUrlFmt = UrlConstant.BASE_URL +
             "/%s?" +
             "leftTicketDTO.train_date=%s&" +
             "leftTicketDTO.from_station=%s&" +
@@ -50,7 +48,7 @@ public class TrainTicketService {
             "purpose_codes=%s";
 
 
-    private static String getTicketPriceUrlFmt = baseUrl + publicName  +
+    private static String getTicketPriceUrlFmt = UrlConstant.BASE_URL +
             "/leftTicket/queryTicketPrice?" +
             "train_no=%s&" +
             "from_station_no=%s&" +
@@ -58,7 +56,7 @@ public class TrainTicketService {
             "seat_types=%s&" +
             "train_date=%s";
 
-    private static String getTicketLineUrlFmt = baseUrl + publicName  +
+    private static String getTicketLineUrlFmt = UrlConstant.BASE_URL +
             "/czxx/queryByTrainNo?" +
             "train_no=%s&" +
             "from_station_telecode=%s&" +

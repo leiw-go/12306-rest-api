@@ -21,4 +21,6 @@ public class UrlConstant {
      * {@value}12306获取所有车次列表URL
      */
     public static final String TRAIN_ALL_CODE_LIST_URL = "https://kyfw.12306.cn/otn/resources/js/query/train_list.js";
+
+    public static final String BASE_URL = "https://kyfw.12306.cn/otn";
 }

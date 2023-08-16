@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.sinosun.train.constants.UrlConstant;
 import com.sinosun.train.model.request.GetTrainStationTimeTableRequest;
 import com.sinosun.train.model.response.TrainStationTimeTable;
 import com.sinosun.train.model.response.TrainStationTimeTableResult;
@@ -26,9 +27,7 @@ public class TrainStationTimeTableService {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
-    private static String baseUrl = "https://kyfw.12306.cn";
-    private static String publicName = "/otn";
-    private static String getTrainStationTimeTableUrlFmt = baseUrl + publicName +
+    private static String getTrainStationTimeTableUrlFmt = UrlConstant.BASE_URL +
             "/czxx/query?" +
             "train_start_date=%s&" +
             "train_station_name=%s&" +

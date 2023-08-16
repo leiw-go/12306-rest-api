@@ -57,6 +57,14 @@ public class TrainController {
         return trainStationService.getAllTrainCode(requestBody.toJavaObject(NoneRequest.class));
     }
 
+    /**
+     * alive 2023-08-16
+     * 根据name模糊搜索车站
+     *
+     * @param request request
+     * @param requestBody requestBody
+     * @return StationResult
+     */
     @RequestMapping(value = "searchCity")
     @ResponseBody
     public StationResult searchCityHandler(HttpServletRequest request, @RequestBody JSONObject requestBody) {

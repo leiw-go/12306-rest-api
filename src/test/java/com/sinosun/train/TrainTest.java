@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import com.sinosun.train.constants.UrlConstant;
 import com.sinosun.train.utils.HttpUtil;
 import com.sinosun.train.utils.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -33,39 +34,36 @@ public class TrainTest {
     }
 
 
-    private static String fromDate = "2019-01-28"; //出发时间（格式：yyyy-mm-dd）
-    private static String fromStation = "XAY"; //出发站代号
-    private static String toStation = "XYY"; //到达站代号
+    private static String fromDate = "2023-08-16"; //出发时间（格式：yyyy-mm-dd）
+    private static String fromStation = "SRG"; //出发站代号
+    private static String toStation = "SHH"; //到达站代号
     private static String purposeCodes ="ADULT"; //乘客类型（成人:ADULT，学生:0X00）
 
-    private static String trainNo = "630000K2260L"; //列车号
-    private static String startTrainDate = "2019-01-08"; //列车起始站发成日期?
+    private static String trainNo = "5l000G135962"; //列车号
+    private static String startTrainDate = "2023-08-16"; //列车起始站发成日期?
 
     private static String startStationNo = "24"; //出发站序
     private static String endStationNo = "25"; //到达站序
     private static String seat_types = "1413"; //车票列表倒数第三个参数
-
-    private static String baseUrl = "https://kyfw.12306.cn";
-    private static String publicName = "/otn";
-    private static String leftTicketUrl ="leftTicket/queryA";
+    private static String leftTicketUrl ="leftTicket/query";
 
     //注:12306的查询接口经常改变（可能一天一改），其变动的主要规律为：https://kyfw.12306.cn/otn/leftTicket/query[A-Z]，就是最后一个字母做变动。
     // 因此，如果程序查询出异常，很大可能就是接口改变了，重新抓下查询接口即可。
-    private static String getTicketListUrlFmt = baseUrl + publicName  + "/%s?" +
+    private static String getTicketListUrlFmt = UrlConstant.BASE_URL + "/%s?" +
             "leftTicketDTO.train_date=%s&" +
             "leftTicketDTO.from_station=%s&" +
             "leftTicketDTO.to_station=%s&" +
             "purpose_codes=%s";
 
 
-    private static String getTicketPriceUrlFmt = baseUrl + publicName  + "/leftTicket/queryTicketPrice?" +
+    private static String getTicketPriceUrlFmt = UrlConstant.BASE_URL + "/leftTicket/queryTicketPrice?" +
             "train_no=%s&" +
             "from_station_no=%s&" +
             "to_station_no=%s&" +
             "seat_types=%s&" +
             "train_date=%s";
 
-    private static String getTicketLineUrlFmt = baseUrl + publicName  + "/czxx/queryByTrainNo?" +
+    private static String getTicketLineUrlFmt = UrlConstant.BASE_URL + "/czxx/queryByTrainNo?" +
             "train_no=%s&" +
             "from_station_telecode=%s&" +
             "to_station_telecode=%s&" +
@@ -87,7 +85,7 @@ public class TrainTest {
         }
 
         JSONObject data = ret.getJSONObject("data");
-        JSONObject map = data.getJSONObject("datamap"); //站点代码和名字映射
+        JSONObject map = data.getJSONObject("map"); //站点代码和名字映射
         JSONArray result = data.getJSONArray("result");
 
         for (int i = 0; i< result.size(); i++) {
