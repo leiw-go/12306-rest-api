@@ -40,7 +40,7 @@ public class TrainTest {
     private static String purposeCodes ="ADULT"; //乘客类型（成人:ADULT，学生:0X00）
 
     private static String trainNo = "5l000G135962"; //列车号
-    private static String startTrainDate = "2023-08-16"; //列车起始站发成日期?
+    private static String startTrainDate = "2023-08-17"; //列车起始站发成日期?
 
     private static String startStationNo = "24"; //出发站序
     private static String endStationNo = "25"; //到达站序

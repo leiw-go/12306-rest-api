@@ -77,6 +77,13 @@ public class TrainController {
         return trainTicketService.getTicketList(requestBody.toJavaObject(GetTicketListRequest.class));
     }
 
+    @RequestMapping(value = "getSecondClassRetainTicketList")
+    @ResponseBody
+    public TicketListResult getSecondClassRetainTicketListHandler(HttpServletRequest request,
+                                                                  @RequestBody JSONObject requestBody) {
+        return trainTicketService.getSecondClassRetainTicketList(requestBody.toJavaObject(GetTicketListRequest.class));
+    }
+
     @RequestMapping(value = "getTrainLine")
     @ResponseBody
     public TrainLineResult getTrainLineHandler(HttpServletRequest request, @RequestBody JSONObject requestBody) {

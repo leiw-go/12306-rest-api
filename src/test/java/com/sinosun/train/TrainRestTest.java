@@ -2,6 +2,7 @@ package com.sinosun.train;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.sinosun.train.datamap.TrainCodeTrainNoMap;
 import com.sinosun.train.model.response.StationResult;
 import com.sinosun.train.model.response.TicketListResult;
 import com.sinosun.train.model.response.TrainLineResult;
@@ -73,11 +74,11 @@ public class TrainRestTest {
     @Test
     public void getTrainLine() {
         JSONObject request = new JSONObject();
-        request.put("TrainNo", "5n000G167004");
-        request.put("TrainCode", "K227");
-        request.put("FromStationCode", "XAY");
-        request.put("ToStationCode", "XYY");
-        request.put("FromDate", "2019-02-22");
+        request.put("TrainNo", "5l000G135962");
+        request.put("TrainCode", "G1638");
+        request.put("FromStationCode", "SRG");
+        request.put("ToStationCode", "SHH");
+        request.put("FromDate", "2023-08-17");
         TrainLineResult ret = restTemplate.postForObject(DOMAIN + "train/getTrainLine", request, TrainLineResult.class);
         System.out.println(JSON.toJSONString(ret, true));
     }

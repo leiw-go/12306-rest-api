@@ -8,7 +8,7 @@ import com.sinosun.train.constants.UrlConstant;
 import com.sinosun.train.model.request.GetTrainStationTimeTableRequest;
 import com.sinosun.train.model.response.TrainStationTimeTable;
 import com.sinosun.train.model.response.TrainStationTimeTableResult;
-import com.sinosun.train.utils.TrainHelper;
+import com.sinosun.train.utils.TrainWebHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -62,7 +62,7 @@ public class TrainStationTimeTableService {
     private List<TrainStationTimeTable> getAnalysisTrainStaionTimeTable(String trainStationName, String trainStationCode, String trainStartDate) {
         // 生成请求链接
         String trainStaionTimeTableUrl = String.format(getTrainStationTimeTableUrlFmt, trainStartDate, trainStationName, trainStationCode);
-        JSONObject ret12306 = TrainHelper.requestTo12306(trainStaionTimeTableUrl);
+        JSONObject ret12306 = TrainWebHelper.requestTo12306(trainStaionTimeTableUrl);
         JSONArray dataArray = ret12306.getJSONObject("data").getJSONArray("data");
 
         // 返回结果不为空时

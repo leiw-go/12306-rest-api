@@ -23,4 +23,13 @@ public class UrlConstant {
     public static final String TRAIN_ALL_CODE_LIST_URL = "https://kyfw.12306.cn/otn/resources/js/query/train_list.js";
 
     public static final String BASE_URL = "https://kyfw.12306.cn/otn";
+
+    public static String GET_REMAIN_TICKETS_URL_FMT = BASE_URL +
+            "/%s?" +
+            "leftTicketDTO.train_date=%s&" +
+            "leftTicketDTO.from_station=%s&" +
+            "leftTicketDTO.to_station=%s&" +
+            "purpose_codes=%s";
+
+    public static String LEFT_TICKET_URL_MAYBE_CHANGE = "leftTicket/query";
 }

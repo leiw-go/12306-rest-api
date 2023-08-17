@@ -11,7 +11,7 @@ import com.sinosun.train.model.response.StationResult;
 import com.sinosun.train.model.response.TrainCodeResult;
 import com.sinosun.train.utils.PreloadData;
 import com.sinosun.train.utils.RedisUtils;
-import com.sinosun.train.utils.TrainHelper;
+import com.sinosun.train.utils.TrainWebHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,7 @@ public class TrainStationService {
     private List<Station> getAllStation() {
         List<Station> stations = PreloadData.getTrainAllCity();
         if (CollectionUtils.isEmpty(stations)) {
-            stations = TrainHelper.getTrainAllCityFromNet();
+            stations = TrainWebHelper.getTrainAllCityFromNet();
         }
         return stations;
     }
@@ -108,7 +108,7 @@ public class TrainStationService {
         }
 
         if (CollectionUtils.isEmpty(stations)) {
-            stations = TrainHelper.getTrainAllCityFromNet();
+            stations = TrainWebHelper.getTrainAllCityFromNet();
             // 设置到缓存
             redisUtils.set(RedisKeyConstant.REDIS_KEY_LOCAL_DATA_STATION, JSONObject.toJSONString(stations), 1L, TimeUnit.DAYS);
         }
@@ -129,7 +129,7 @@ public class TrainStationService {
         }
 
         if (CollectionUtils.isEmpty(hotStationsList)) {
-            hotStationsList = TrainHelper.getTrainHotStationFromNet();
+            hotStationsList = TrainWebHelper.getTrainHotStationFromNet();
             // 设置到缓存
             redisUtils.set(RedisKeyConstant.REDIS_KEY_LOCAL_DATA_HOT_STATION, JSONObject.toJSONString(hotStationsList), 1L, TimeUnit.DAYS);
         }
@@ -150,7 +150,7 @@ public class TrainStationService {
         }
 
         if (CollectionUtils.isEmpty(trainNoLinkMap)) {
-            trainNoLinkMap = TrainHelper.getAllTrainNoListFromNet();
+            trainNoLinkMap = TrainWebHelper.getAllTrainNoListFromNet();
             // 设置到缓存
             redisUtils.set(RedisKeyConstant.REDIS_KEY_LOCAL_DATA_TRAIN_NO_LINK, JSONObject.toJSONString(trainNoLinkMap), 1L, TimeUnit.DAYS);
         }

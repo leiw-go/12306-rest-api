@@ -12,7 +12,7 @@ import com.sinosun.train.model.request.GetTicketListRequest;
 import com.sinosun.train.model.request.GetTrainLineRequest;
 import com.sinosun.train.model.response.*;
 import com.sinosun.train.model.vo.TicketPrice;
-import com.sinosun.train.utils.TrainHelper;
+import com.sinosun.train.utils.TrainWebHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -22,9 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created on 2019/1/10 21:00.
@@ -69,6 +71,11 @@ public class TrainTicketService {
         return new TicketListResult(new TicketList(getTicketListFrom12306(requestBody)));
     }
 
+    public TicketListResult getSecondClassRetainTicketList(GetTicketListRequest requestBody) {
+        requestBody.validate();
+        return new TicketListResult(new TicketList(filterSecondRetainTicket(requestBody)));
+    }
+
     public TrainLineResult getTrainLine(GetTrainLineRequest requestBody) {
         requestBody.validate();
         String trainNo = TrainCodeTrainNoMap.getTrainNo(requestBody.getTrainCode());
@@ -76,9 +83,18 @@ public class TrainTicketService {
         if (StringUtils.isEmpty(trainNo)) {
             TrainCodeResult trainCodeResult = trainStationService.getAllTrainCode(null);
             trainNo = (String) trainCodeResult.getResult().get(requestBody.getTrainCode());
+            logger.info("get train no {} of {} form 12306 js.", trainNo, requestBody.getTrainCode());
         }
         String fromDate = convertFromDate(requestBody.getFromDate());
         return new TrainLineResult(getTrainLineFrom12306(trainNo, fromDate, requestBody.getFromStationCode(), requestBody.getToStationCode()));
+    }
+
+    public TicketListResult getRemainTicket() {
+        return new TicketListResult();
+    }
+
+    private StationList getMiddleStation(String fromName, String endName) {
+        return new StationList(new ArrayList<Station>());
     }
 
 
@@ -88,16 +104,24 @@ public class TrainTicketService {
      * @return 车票列表
      */
     private List<Ticket> getTicketListFrom12306(GetTicketListRequest requestBody) {
-        JSONObject ret12306 = TrainHelper.requestTo12306(getTicketListUrl(requestBody));
+        JSONObject ret12306 = TrainWebHelper.requestTo12306(getTicketListUrl(requestBody));
         // 若接口地址变化，获取新地址重新请求 可通过302错误码判断 代表暂时性转移(Temporarily Moved ) redirect
         if (ret12306.containsKey("c_url")) {
             logger.warn("查询火车票接口发生跳转：{}", ret12306);
             leftTicketUrl = ret12306.getString("c_url");
-            ret12306 = TrainHelper.requestTo12306(getTicketListUrl(requestBody));
+            ret12306 = TrainWebHelper.requestTo12306(getTicketListUrl(requestBody));
         }
 
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data);
+    }
+
+    private List<Ticket> filterSecondRetainTicket(GetTicketListRequest requestBody) {
+        List<Ticket> list = getTicketListFrom12306(requestBody);
+        List<Ticket> filterList = list.stream().filter(f -> "G".equals(f.getTrainType())).filter(f -> !"0".equals(f.getEdzNum()))
+                .collect(Collectors.toList());
+        logger.info("filterList is {}", filterList);
+        return filterList;
     }
 
     /**
@@ -134,12 +158,12 @@ public class TrainTicketService {
                 String trainCode = trainItem.get(3); //车次
 
                 String startStationCode = trainItem.get(4); // 起始站代码
-                String endStationCode = trainItem.get(5); // 结束站代码
+                String endStationCode = trainItem.get(5); // 终点站站代码
 
                 String fromStationCode = trainItem.get(6); //出发站代码
                 String toStationCode = trainItem.get(7); //到达站代码
-                String fromStationName = map.getString(fromStationCode); //出发站
-                String toStationName = map.getString(toStationCode); //到达站
+                String fromStationName = map.getString(fromStationCode); //出发站名称
+                String toStationName = map.getString(toStationCode); //到达站名称
 
                 String startTime = trainItem.get(8); //出发时刻
                 String arriveTime = trainItem.get(9); //到达时刻
@@ -155,13 +179,16 @@ public class TrainTicketService {
                 String fromStationNo = trainItem.get(16); //出发站站序（对应火车经停信息中的站序）01表示始发站，大于1则表示过站
                 String toStationNo = trainItem.get(17); //到达站站序（对应火车经停信息中的站序）
                 String isSupportCard = trainItem.get(18); //可凭二代身份证直接进出站 1 可以 0 不可以
-                String controlledTrainFlag = trainItem.get(19); //?
 
+                String controlledTrainFlag = trainItem.get(19); //?
                 String ggNum = StringUtils.isNotEmpty(trainItem.get(20)) ? trainItem.get(20) : "0"; //?
+
                 String grNum = StringUtils.isNotEmpty(trainItem.get(21)) ? trainItem.get(21) : "0"; // 高级软卧
                 String qtNum = StringUtils.isNotEmpty(trainItem.get(22)) ? trainItem.get(22) : "0"; // 其他
+
                 String rwNum = StringUtils.isNotEmpty(trainItem.get(23)) ? trainItem.get(23) : "0"; // 软卧/一等卧
                 String rzNum = StringUtils.isNotEmpty(trainItem.get(24)) ? trainItem.get(24) : "0"; // 软座
+
                 String tzNum = StringUtils.isNotEmpty(trainItem.get(25)) ? trainItem.get(25) : "0"; //? 特等座?
                 String wzNum = StringUtils.isNotEmpty(trainItem.get(26)) ? trainItem.get(26) : "0"; // 无座
                 String ybNum = StringUtils.isNotEmpty(trainItem.get(27)) ? trainItem.get(27) : "0"; //?
@@ -242,7 +269,7 @@ public class TrainTicketService {
      */
     private TrainLine getTrainLineFrom12306(String trainNo, String fromDate, String fromStationCode, String toStationCode) {
         String getTicketLineUrl = String.format(getTicketLineUrlFmt, trainNo, fromStationCode, toStationCode, fromDate);
-        JSONObject ret12306 = TrainHelper.requestTo12306(getTicketLineUrl);
+        JSONObject ret12306 = TrainWebHelper.requestTo12306(getTicketLineUrl);
         JSONArray stops = ret12306.getJSONObject("data").getJSONArray("data");
 
         TrainLine trainLine = new TrainLine();
@@ -298,7 +325,7 @@ public class TrainTicketService {
      */
     private TicketPrice queryTicketPrice(String trainNo, String fromDate, String fromStationNo, String toStationNo, String seatTypes) {
         String getTicketPriceUrl = String.format(getTicketPriceUrlFmt, trainNo, fromStationNo, toStationNo, seatTypes, fromDate);
-        JSONObject ret12306 = TrainHelper.requestTo12306(getTicketPriceUrl);
+        JSONObject ret12306 = TrainWebHelper.requestTo12306(getTicketPriceUrl);
         JSONObject data = ret12306.getJSONObject("data");
 
         Map<String, String> seatTypeMap = SeatTypeMap.getSeatTypeMap();
