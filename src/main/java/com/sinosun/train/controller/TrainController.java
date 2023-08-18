@@ -74,7 +74,7 @@ public class TrainController {
 
     @RequestMapping(value = "getTicketList")
     @ResponseBody
-    public TicketListResult getTicketListHandler(HttpServletRequest request, @RequestBody JSONObject requestBody) {
+    public TicketListResult getTicketListHandler(HttpServletRequest request, @RequestBody JSONObject requestBody) throws InterruptedException {
         return trainTicketService.getTicketList(requestBody.toJavaObject(GetTicketListRequest.class));
     }
 

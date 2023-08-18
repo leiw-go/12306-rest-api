@@ -11,6 +11,7 @@ import com.sinosun.train.model.response.StationResult;
 import com.sinosun.train.model.response.TrainCodeResult;
 import com.sinosun.train.utils.PreloadData;
 import com.sinosun.train.utils.RedisUtils;
+import com.sinosun.train.utils.StationUtil;
 import com.sinosun.train.utils.TrainWebHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class TrainStationService {
         // 从本地获取
         // return new StationResult(new StationList(getAllStation()));
         // 优先从redis获取
-        return new StationResult(new StationList(getAllStatioonFromRedis()));
+        return new StationResult(new StationList(StationUtil.getAllStation()));
     }
 
     public StationResult getHotCity(NoneRequest requestBody) {
@@ -69,7 +70,7 @@ public class TrainStationService {
         // 从本地获取
         // List<Station> stations = getAllStation();
         // 从redis获取
-        List<Station> stations = getAllStatioonFromRedis();
+        List<Station> stations = StationUtil.getAllStation();
         for (Station station : stations) {
             boolean isMatching = station.getName().startsWith(keyword)
                     || station.getPingYin().toLowerCase(Locale.ENGLISH).startsWith(keyword.toLowerCase(Locale.ENGLISH))
@@ -90,27 +91,6 @@ public class TrainStationService {
         List<Station> stations = PreloadData.getTrainAllCity();
         if (CollectionUtils.isEmpty(stations)) {
             stations = TrainWebHelper.getTrainAllCityFromNet();
-        }
-        return stations;
-    }
-
-    /**
-     * 获取火车站点数据，先从redis获取，获取是失败在从12306获取
-     *
-     * @return
-     */
-    private List<Station> getAllStatioonFromRedis() {
-        // 优先从redis中获取站点信息
-        String allStationStr = (String) redisUtils.get(RedisKeyConstant.REDIS_KEY_LOCAL_DATA_STATION);
-        List<Station> stations = null;
-        if (StringUtils.isNotBlank(allStationStr)) {
-            stations = JSONObject.parseArray(allStationStr, Station.class);
-        }
-
-        if (CollectionUtils.isEmpty(stations)) {
-            stations = TrainWebHelper.getTrainAllCityFromNet();
-            // 设置到缓存
-            redisUtils.set(RedisKeyConstant.REDIS_KEY_LOCAL_DATA_STATION, JSONObject.toJSONString(stations), 1L, TimeUnit.DAYS);
         }
         return stations;
     }

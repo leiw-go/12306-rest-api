@@ -53,7 +53,7 @@ public class TrainTicketService {
             "seat_types=%s&" +
             "train_date=%s";
 
-    public TicketListResult getTicketList(GetTicketListRequest requestBody) {
+    public TicketListResult getTicketList(GetTicketListRequest requestBody) throws InterruptedException {
         requestBody.validate();
         return new TicketListResult(new TicketList(TrainWebHelper.getTicketListFrom12306Cn(requestBody)));
     }
@@ -97,8 +97,6 @@ public class TrainTicketService {
                 model.setFromStationCode(fromStation.getStationCode());
                 model.setToStationCode(StationUtil.getStationFromName(stop.getStationName()).getStationCode());
                 model.setFromDate(request.getFromDate());
-                logger.info("start to sleep...");
-                Thread.sleep(500);
                 List<Ticket> tickets = TrainWebHelper.filterSpecificRemainSecondRetainTicket(model);
                 remainTickets.addAll(tickets);
             }

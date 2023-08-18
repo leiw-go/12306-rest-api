@@ -18,8 +18,11 @@ import org.joda.time.DateTime;
 import org.jsoup.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +34,9 @@ import java.util.stream.Collectors;
  *
  * @author caogu
  */
+@Component
 public class TrainWebHelper {
     private static final Logger logger = LoggerFactory.getLogger(TrainWebHelper.class);
-
 
     /**
      * 从12306获取最新的火车站点数据
@@ -106,7 +109,7 @@ public class TrainWebHelper {
         return JsonUtil.parseObject(HttpUtil.request(url, Connection.Method.GET, null));
     }
 
-    public static List<Ticket> filterSpecificRemainSecondRetainTicket(GetTicketListRequest requestBody) {
+    public static List<Ticket> filterSpecificRemainSecondRetainTicket(GetTicketListRequest requestBody) throws InterruptedException {
         List<Ticket> list = getSpecificTicketListFrom12306Cn(requestBody);
         List<Ticket> filterList = list.stream().filter(f -> "G".equals(f.getTrainType())).filter(f -> !"0".equals(f.getEdzNum()))
                 .collect(Collectors.toList());
@@ -119,8 +122,10 @@ public class TrainWebHelper {
      * @param requestBody 请求
      * @return 车票列表
      */
-    public static List<Ticket> getTicketListFrom12306Cn(GetTicketListRequest requestBody) {
+    public static List<Ticket> getTicketListFrom12306Cn(GetTicketListRequest requestBody) throws InterruptedException {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
+        logger.info("start to sleep in getTicketListFrom12306Cn...");
+        Thread.sleep(1000);
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data);
     }
@@ -130,8 +135,10 @@ public class TrainWebHelper {
      * @param requestBody 请求
      * @return 车票列表
      */
-    public static List<Ticket> getSpecificTicketListFrom12306Cn(GetTicketListRequest requestBody) {
+    public static List<Ticket> getSpecificTicketListFrom12306Cn(GetTicketListRequest requestBody) throws InterruptedException {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
+        logger.info("start to sleep in getSpecificTicketListFrom12306Cn...");
+        Thread.sleep(1000);
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data).stream()
                 .filter(f -> StationUtil.getStationFromName(f.getToStation()).getStationCode().equals(requestBody.getToStationCode())).collect(Collectors.toList());
