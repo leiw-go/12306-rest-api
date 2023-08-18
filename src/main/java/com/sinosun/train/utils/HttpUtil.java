@@ -65,7 +65,8 @@ public class HttpUtil {
                 logger.error("执行url={}返回非200/302值, statusCode={}", url, response.statusCode());
                 throw new ServiceException(PlatformErrorCode.SERVICE_INTERNAL_ERROR);
             }
-            logger.info("======request code={} result={}", code, result);
+//            logger.info("======request code={} result={}", code, result);
+            logger.info("======request code={}", code);
         } catch (IOException e) {
             logger.error("执行" + url + "出错, data=" + data, e);
             throw new ServiceException(PlatformErrorCode.SERVICE_INTERNAL_ERROR, e);

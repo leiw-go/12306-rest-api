@@ -280,4 +280,8 @@ public class TrainTest {
         return ret;
     }
 
+    @Test
+    public void remainTicketTest() {
+
+    }
 }

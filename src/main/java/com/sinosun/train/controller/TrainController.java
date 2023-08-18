@@ -6,6 +6,7 @@ import com.sinosun.train.model.response.*;
 import com.sinosun.train.service.TrainStationService;
 import com.sinosun.train.service.TrainStationTimeTableService;
 import com.sinosun.train.service.TrainTicketService;
+import com.sinosun.train.utils.TrainWebHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,8 +81,8 @@ public class TrainController {
     @RequestMapping(value = "getSecondClassRetainTicketList")
     @ResponseBody
     public TicketListResult getSecondClassRetainTicketListHandler(HttpServletRequest request,
-                                                                  @RequestBody JSONObject requestBody) {
-        return trainTicketService.getSecondClassRetainTicketList(requestBody.toJavaObject(GetTicketListRequest.class));
+                                                                  @RequestBody JSONObject requestBody) throws InterruptedException {
+        return trainTicketService.getRemainTicket(requestBody.toJavaObject(GetRealRemainTicketsRequest.class));
     }
 
     @RequestMapping(value = "getTrainLine")

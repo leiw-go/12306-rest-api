@@ -9,18 +9,22 @@ import com.sinosun.train.datamap.TrainCodeTrainNoMap;
 import com.sinosun.train.enums.train.PassengerType;
 import com.sinosun.train.model.request.GetTicketListRequest;
 import com.sinosun.train.model.response.Station;
+import com.sinosun.train.model.response.Stop;
 import com.sinosun.train.model.response.Ticket;
+import com.sinosun.train.model.response.TrainLine;
 import com.sinosun.train.model.vo.TicketPrice;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.jsoup.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created on 2019/1/16 20:42.
@@ -102,15 +106,35 @@ public class TrainWebHelper {
         return JsonUtil.parseObject(HttpUtil.request(url, Connection.Method.GET, null));
     }
 
+    public static List<Ticket> filterSpecificRemainSecondRetainTicket(GetTicketListRequest requestBody) {
+        List<Ticket> list = getSpecificTicketListFrom12306Cn(requestBody);
+        List<Ticket> filterList = list.stream().filter(f -> "G".equals(f.getTrainType())).filter(f -> !"0".equals(f.getEdzNum()))
+                .collect(Collectors.toList());
+        logger.info("filterList is {}", filterList);
+        return filterList;
+    }
+
     /**
      * 从12306获取车票列表，先请求一次，若URL发生跳转则用新地址继续请求
      * @param requestBody 请求
      * @return 车票列表
      */
-    public static List<Ticket> getTicketListFrom12306(GetTicketListRequest requestBody) {
+    public static List<Ticket> getTicketListFrom12306Cn(GetTicketListRequest requestBody) {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data);
+    }
+
+    /**
+     * 从12306获取车票列表，获取完全指定终点车站的票
+     * @param requestBody 请求
+     * @return 车票列表
+     */
+    public static List<Ticket> getSpecificTicketListFrom12306Cn(GetTicketListRequest requestBody) {
+        JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
+        JSONObject data = ret12306.getJSONObject("data");
+        return buildTicketList(requestBody, data).stream()
+                .filter(f -> StationUtil.getStationFromName(f.getToStation()).getStationCode().equals(requestBody.getToStationCode())).collect(Collectors.toList());
     }
 
     /**
@@ -255,7 +279,7 @@ public class TrainWebHelper {
      * @param fromDate Date类型时间
      * @return yyyy-MM-dd字符串
      */
-    private static String convertFromDate(Date fromDate) {
+    public static String convertFromDate(Date fromDate) {
         return new DateTime(fromDate).toString("yyyy-MM-dd");
     }
 
@@ -291,6 +315,61 @@ public class TrainWebHelper {
             trainType = String.valueOf(trainCode.charAt(0));
         }
         return trainType;
+    }
+
+    /**
+     * 查询列车经停信息
+     * @param trainNo 列车号 注意区分车次代码
+     * @param fromDate 出发日期
+     * @param fromStationCode 出发站点代码
+     * @param toStationCode 到达站点代码
+     * @return 经停信息
+     */
+    public static TrainLine getTrainLineFrom12306(String trainNo, String fromDate, String fromStationCode, String toStationCode) {
+        String getTicketLineUrl = String.format(UrlConstant.GET_TRAIN_LINE_URL_FMT, trainNo, fromStationCode, toStationCode, fromDate);
+        JSONObject ret12306 = TrainWebHelper.requestTo12306(getTicketLineUrl);
+        JSONArray stops = ret12306.getJSONObject("data").getJSONArray("data");
+
+        TrainLine trainLine = new TrainLine();
+        if (!CollectionUtils.isEmpty(stops)) {
+            JSONObject stopInfoFirst = stops.getJSONObject(0);
+            String startStationName = stopInfoFirst.getString("start_station_name"); //出发城市
+            String endStationName = stopInfoFirst.getString("end_station_name"); //到达城市
+            String stationTrainCode = stopInfoFirst.getString("station_train_code"); //车次号
+            String trainClassName = stopInfoFirst.getString("train_class_name"); //车次类型， 快速等
+            String serviceType = stopInfoFirst.getString("service_type"); //服务类型 0表示无空调 其他表示有空调
+            String serviceName = "0".equals(serviceType) ? "无空调" : "有空调";
+
+            List<Stop> resultStops = Lists.newArrayList();
+            for (int i = 0; i < stops.size(); i++) {
+                Stop stop = new Stop();
+                JSONObject stopInfo = stops.getJSONObject(i);
+                String startTime = stopInfo.getString("start_time"); //出发时间（格式 HH:mm）
+                String arriveTime = stopInfo.getString("arrive_time"); //到达时间（格式 HH:mm 或者----）
+                String stationName = stopInfo.getString("station_name"); //站名
+                String stopoverTime = stopInfo.getString("stopover_time"); //停留时间（分钟） 可能为----
+                String stationNo = stopInfo.getString("station_no"); //站序（01开始）
+                Boolean isSearchStation = stopInfo.getBoolean("isEnabled"); //是否是我们搜索的出行站和到达站 false不是 true是
+
+                stop.setStartTime(startTime);
+                stop.setArriveTime(arriveTime);
+                stop.setStationName(stationName);
+                stop.setStopoverTime(stopoverTime);
+                stop.setStationNo(stationNo);
+                stop.setIsSearchStation(isSearchStation);
+                resultStops.add(stop);
+            }
+
+            trainLine.setTrainCode(stationTrainCode);
+            trainLine.setStartStationName(startStationName);
+            trainLine.setEndStationName(endStationName);
+            trainLine.setTrainClassName(trainClassName);
+            trainLine.setServiceName(serviceName);
+            trainLine.setStops(resultStops);
+            return trainLine;
+        }
+
+        return trainLine;
     }
 
     /**

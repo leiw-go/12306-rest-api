@@ -1,11 +1,13 @@
 package com.sinosun.train.utils;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.google.common.collect.Lists;
-import com.sinosun.train.model.response.Station;
-import com.sinosun.train.model.response.TrainLine;
+import com.sinosun.train.model.request.GetRealRemainTicketsRequest;
+import com.sinosun.train.model.request.GetTicketListRequest;
+import com.sinosun.train.model.request.SearchCityRequest;
+import com.sinosun.train.model.response.*;
 
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class StationUtil {
 
@@ -35,16 +37,62 @@ public class StationUtil {
     /**
      * 获取两地之间的所有可能线路
      *
-     * @param fromName 出发地
-     * @param targetName 到达地
+     * @param request 出发地
      * @return 两地直接所有线路
      */
-    public static List<TrainLine> getLinesBetweenStation(String fromName, String targetName, boolean isHighSpeed) {
-        return null;
+    public static List<TrainLine> getLinesBetweenStations(GetRealRemainTicketsRequest request) throws InterruptedException {
+        List<Station> fromStations = getThisAreaAllStations(request.getFromName());
+        System.out.println("start to sleep for getThisAreaAllStations...");
+        Thread.sleep(1500);
+        List<Station> toStations = getThisAreaAllStations(request.getTargetName());
+        System.out.println("start to sleep for getThisAreaAllStations...");
+        Thread.sleep(500);
+        List<Ticket> tickets = new ArrayList<>();
+        List<TrainLine> trainLines = new ArrayList<>();
+        OUT:
+        for (Station fromStation : fromStations) {
+            for (Station toStation: toStations) {
+                GetTicketListRequest model = new GetTicketListRequest();
+                model.setFromStationCode(fromStation.getStationCode());
+                model.setToStationCode(toStation.getStationCode());
+                model.setFromDate(request.getFromDate());
+                tickets = TrainWebHelper.getTicketListFrom12306Cn(model);
+                System.out.println("start to sleep in getLinesBetweenStations...");
+                Thread.sleep(500);
+                if (!tickets.isEmpty()) {
+                    break OUT;
+                }
+            }
+        }
+        if (tickets.isEmpty()) {
+            return new ArrayList<>();
+        }
+        for (Ticket ticket : tickets) {
+            TrainLine line = TrainWebHelper.getTrainLineFrom12306(ticket.getTrainNo(),
+                    TrainWebHelper.convertFromDate(request.getFromDate()),
+                    StationUtil.getStationFromName(ticket.getFromStation()).getStationCode(),
+                    StationUtil.getStationFromName(ticket.getToStation()).getStationCode());
+            System.out.println("start to sleep in getLinesBetweenStations...");
+            Thread.sleep(500);
+            trainLines.add(line);
+        }
+        return trainLines;
     }
 
-    public static List<Station> getLinesBetweenStations(Station fromStation, Station toStation) {
-        return null;
+    /**
+     * 根据站名精确查询称号
+     *
+     * @param keyword 站名
+     * @return Station
+     */
+    public static Station getStationFromName(String keyword) {
+        List<Station> stations = TrainWebHelper.getTrainAllCityFromNet();
+        for (Station station : stations) {
+            boolean isMatching = station.getName().equals(keyword);
+            if (isMatching) {
+                return station;
+            }
+        }
+        return new Station();
     }
-
 }

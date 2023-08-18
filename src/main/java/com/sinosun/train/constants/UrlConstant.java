@@ -32,4 +32,11 @@ public class UrlConstant {
             "purpose_codes=%s";
 
     public static String LEFT_TICKET_URL_MAYBE_CHANGE = "leftTicket/query";
+
+    public static String GET_TRAIN_LINE_URL_FMT = BASE_URL +
+            "/czxx/queryByTrainNo?" +
+            "train_no=%s&" +
+            "from_station_telecode=%s&" +
+            "to_station_telecode=%s&" +
+            "depart_date=%s";
 }
