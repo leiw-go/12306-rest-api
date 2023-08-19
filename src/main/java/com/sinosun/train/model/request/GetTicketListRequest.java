@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Created on 2019/1/10 20:57.
@@ -92,5 +93,18 @@ public class GetTicketListRequest {
                 .add("fromDate", fromDate)
                 .add("isStudent", isStudent)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GetTicketListRequest that = (GetTicketListRequest) o;
+        return Objects.equals(fromStationCode, that.fromStationCode) && Objects.equals(toStationCode, that.toStationCode) && Objects.equals(fromDate, that.fromDate) && Objects.equals(isStudent, that.isStudent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fromStationCode, toStationCode, fromDate, isStudent);
     }
 }

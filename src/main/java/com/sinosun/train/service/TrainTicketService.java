@@ -19,15 +19,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -71,37 +69,53 @@ public class TrainTicketService {
         return new TrainLineResult(TrainWebHelper.getTrainLineFrom12306(trainNo, fromDate, requestBody.getFromStationCode(), requestBody.getToStationCode()));
     }
 
-    public TicketListResult getRemainTicket(GetRealRemainTicketsRequest request) throws InterruptedException {
+    public SecondClassTicketListResult getRemainTicket(GetRealRemainTicketsRequest request) throws InterruptedException {
         List<TrainLine> lines = StationUtil.getLinesBetweenStations(request);
         Station fromStation = StationUtil.getStationFromName(request.getFromName());
-        List<Ticket> remainTickets = new ArrayList<>();
+        List<SecondClassTicket> remainTickets = new ArrayList<>();
+        Map<String, List<String>> targetStationLine = new HashMap<>();
         for (TrainLine line : lines) {
             int startNo = 0;
             int endNo = 0;
+            logger.info("Now begin to collect stop remain station of line {}", line.getTrainCode());
             for (Stop stop : line.getStops()) {
                 if (request.getFromName().equals(stop.getStationName())) {
                     startNo = Integer.parseInt(stop.getStationNo());
+                    logger.debug("from station is {}, start no is {}", request.getFromName(), startNo);
                 }
                 if (request.getTargetName().equals(stop.getStationName())) {
                     endNo = Integer.parseInt(stop.getStationNo());
+                    logger.debug("end station is {}, end no is {}",request.getTargetName(), endNo);
                 }
             }
             if (startNo == endNo) {
-                return new TicketListResult();
+                return new SecondClassTicketListResult();
             }
             for (Stop stop : line.getStops()) {
-                if (Integer.parseInt(stop.getStationNo()) < startNo || Integer.parseInt(stop.getStationNo()) > endNo) {
+                if (Integer.parseInt(stop.getStationNo()) <= startNo || Integer.parseInt(stop.getStationNo()) > endNo) {
                     continue;
                 }
-                GetTicketListRequest model = new GetTicketListRequest();
-                model.setFromStationCode(fromStation.getStationCode());
-                model.setToStationCode(StationUtil.getStationFromName(stop.getStationName()).getStationCode());
-                model.setFromDate(request.getFromDate());
-                List<Ticket> tickets = TrainWebHelper.filterSpecificRemainSecondRetainTicket(model);
-                remainTickets.addAll(tickets);
+                if (targetStationLine.get(stop.getStationName()) == null) {
+                    targetStationLine.put(stop.getStationName(), new ArrayList<String>(){{add(line.getTrainCode());}});
+                } else {
+                    targetStationLine.get(stop.getStationName()).add(line.getTrainCode());
+                }
             }
         }
-        return new TicketListResult(new TicketList(remainTickets));
+        for (Map.Entry<String, List<String>> entry : targetStationLine.entrySet()) {
+            GetTicketListRequest model = new GetTicketListRequest();
+            model.setFromStationCode(fromStation.getStationCode());
+            model.setToStationCode(StationUtil.getStationFromName(entry.getKey()).getStationCode());
+            model.setFromDate(request.getFromDate());
+            List<Ticket> tickets = TrainWebHelper.filterSpecificRemainSecondRetainTicket(model);
+            List<SecondClassTicket> secondClassTickets = tickets.stream()
+                    .filter(f -> entry.getValue().contains(f.getTrainCode()))
+                    .map(this::transferTicket).collect(Collectors.toList());
+            logger.info("collect tickets between {} and {} success, about lines {}",
+                    request.getFromName(), entry.getKey(), entry.getValue());
+            remainTickets.addAll(secondClassTickets);
+        }
+        return new SecondClassTicketListResult(new SecondClassTicketList(remainTickets));
     }
 
     /**
@@ -176,5 +190,17 @@ public class TrainTicketService {
             ret = new BigDecimal(price.substring(1));
         }
         return ret;
+    }
+
+    private SecondClassTicket transferTicket(Ticket ticket) {
+        SecondClassTicket secondClassTicket = new SecondClassTicket();
+        BeanUtils.copyProperties(ticket, secondClassTicket);
+        secondClassTicket.setSecondClassTicKetNum(ticket.getEdzNum());
+        secondClassTicket.setSecondClassTicketPrice(ticket.getEdzPrice());
+        secondClassTicket.setNoSeatTicketNum(ticket.getWzNum());
+        secondClassTicket.setNoSeatTicketPrice(ticket.getWzPrice());
+        secondClassTicket.setOtherCheapTicketNum(ticket.getQtNum());
+        secondClassTicket.setOtherCheapTicketPrice(ticket.getQtPrice());
+        return secondClassTicket;
     }
 }

@@ -226,7 +226,7 @@ public class TrainWebHelper {
                 String seatTypes = trainItem.get(35); //?
                 String exchangeTrainFlag = trainItem.get(36); //?
 
-                logger.info("列车号：{} 出发站:{} 达站:{} 出发时间:{} 到达时间:{} 历时:{} 列车起始站发车日期:{} " +
+                logger.debug("列车号：{} 出发站:{} 达站:{} 出发时间:{} 到达时间:{} 历时:{} 列车起始站发车日期:{} " +
                                 "商务座特等座:{} 一等座:{} 二等座:{} 高级软卧:{} 软卧:{} 动卧:{} 硬卧:{} 软座:{} 硬座:{} 无座:{} 其他:{} 备注:{}",
                         trainCode, fromStationName, toStationName, startTime, arriveTime, runTime, startTrainDate,
                         swzNum, ydzNum, edzNum, grNum, rwNum, srrbNum, ywNum, rzNum, yzNum, wzNum, qtNum, buttonTextInfo);

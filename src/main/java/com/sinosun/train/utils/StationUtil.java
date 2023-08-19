@@ -79,8 +79,10 @@ public class StationUtil {
      * @return 两地直接所有线路
      */
     public static List<TrainLine> getLinesBetweenStations(GetRealRemainTicketsRequest request) throws InterruptedException {
+        // 根据地面模糊匹配当地所有车站
         List<Station> fromStations = getThisAreaAllStations(request.getFromName());
         List<Station> toStations = getThisAreaAllStations(request.getTargetName());
+
         List<Ticket> tickets = new ArrayList<>();
         List<TrainLine> trainLines = new ArrayList<>();
         OUT:
@@ -91,6 +93,8 @@ public class StationUtil {
                 model.setToStationCode(toStation.getStationCode());
                 model.setFromDate(request.getFromDate());
                 tickets = TrainWebHelper.getTicketListFrom12306Cn(model);
+
+                // 两地之间的车票查询会查询出所有列车班次，故直接跳出循环
                 if (!tickets.isEmpty()) {
                     break OUT;
                 }

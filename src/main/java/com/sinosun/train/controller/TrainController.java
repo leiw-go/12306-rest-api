@@ -80,7 +80,7 @@ public class TrainController {
 
     @RequestMapping(value = "getSecondClassRetainTicketList")
     @ResponseBody
-    public TicketListResult getSecondClassRetainTicketListHandler(HttpServletRequest request,
+    public SecondClassTicketListResult getSecondClassRetainTicketListHandler(HttpServletRequest request,
                                                                   @RequestBody JSONObject requestBody) throws InterruptedException {
         return trainTicketService.getRemainTicket(requestBody.toJavaObject(GetRealRemainTicketsRequest.class));
     }
