@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.sinosun.train.constants.UrlConstant;
+import com.sinosun.train.datamap.SeatTypeMap;
 import com.sinosun.train.datamap.TrainCodeTrainNoMap;
 import com.sinosun.train.enums.train.PassengerType;
 import com.sinosun.train.model.request.GetTicketListRequest;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -109,14 +111,6 @@ public class TrainWebHelper {
         return JsonUtil.parseObject(HttpUtil.request(url, Connection.Method.GET, null));
     }
 
-    public static List<Ticket> filterSpecificRemainSecondRetainTicket(GetTicketListRequest requestBody) throws InterruptedException {
-        List<Ticket> list = getSpecificTicketListFrom12306Cn(requestBody);
-        List<Ticket> filterList = list.stream().filter(f -> "G".equals(f.getTrainType())).filter(f -> !"0".equals(f.getEdzNum()))
-                .collect(Collectors.toList());
-        logger.info("filterList is {}", filterList);
-        return filterList;
-    }
-
     /**
      * 从12306获取车票列表，先请求一次，若URL发生跳转则用新地址继续请求
      * @param requestBody 请求
@@ -124,7 +118,7 @@ public class TrainWebHelper {
      */
     public static List<Ticket> getTicketListFrom12306Cn(GetTicketListRequest requestBody) throws InterruptedException {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
-        logger.info("start to sleep in getTicketListFrom12306Cn...");
+        logger.debug("start to sleep in getTicketListFrom12306Cn...");
         Thread.sleep(1000);
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data);
@@ -137,7 +131,7 @@ public class TrainWebHelper {
      */
     public static List<Ticket> getSpecificTicketListFrom12306Cn(GetTicketListRequest requestBody) throws InterruptedException {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
-        logger.info("start to sleep in getSpecificTicketListFrom12306Cn...");
+        logger.debug("start to sleep in getSpecificTicketListFrom12306Cn...");
         Thread.sleep(1000);
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data).stream()
@@ -279,6 +273,26 @@ public class TrainWebHelper {
             }
         }
         return ret;
+    }
+
+    /**
+     * 查询车票的价格
+     * @param trainNo 列车号 注意区分车次代码
+     * @param fromDate 出发日期
+     * @param fromStationNo 出发站序
+     * @param toStationNo 到达站序
+     * @param seatTypes ? 查询车票列表时的ypEx字段
+     * @return 所有票价
+     */
+    private static Map<String, String> querySecondClassTicketPrice(String trainNo, String fromDate, String fromStationNo, String toStationNo, String seatTypes) {
+        String getTicketPriceUrl = String.format(UrlConstant.GET_PRICE_URL_FMT, trainNo, fromStationNo, toStationNo, seatTypes, fromDate);
+        JSONObject ret12306 = TrainWebHelper.requestTo12306(getTicketPriceUrl);
+        JSONObject data = ret12306.getJSONObject("data");
+
+        Map<String, String> priceMap = new HashMap<>();
+        priceMap.put("secondClassPrice", data.getString("O"));
+        priceMap.put("noSeatPrice", data.getString("WZ"));
+        return priceMap;
     }
 
     /**

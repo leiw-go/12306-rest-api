@@ -94,12 +94,12 @@ public class TrainLine {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("stops", stops)
+//                .add("stops", stops)
                 .add("startStationName", startStationName)
                 .add("endStationName", endStationName)
                 .add("trainCode", trainCode)
-                .add("trainClassName", trainClassName)
-                .add("serviceName", serviceName)
+//                .add("trainClassName", trainClassName)
+//                .add("serviceName", serviceName)
                 .toString();
     }
 }

@@ -3,11 +3,14 @@ package com.sinosun.train.model.request;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import java.util.Date;
+import java.util.List;
 
 public class GetRealRemainTicketsRequest {
     private String fromName;
 
     private String targetName;
+
+    private List<String> trainType;
 
     private boolean isHighSpeed = Boolean.TRUE;
 
@@ -47,5 +50,13 @@ public class GetRealRemainTicketsRequest {
 
     public void setHighSpeed(boolean highSpeed) {
         isHighSpeed = highSpeed;
+    }
+
+    public List<String> getTrainType() {
+        return trainType;
+    }
+
+    public void setTrainType(List<String> trainType) {
+        this.trainType = trainType;
     }
 }

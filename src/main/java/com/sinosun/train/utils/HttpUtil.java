@@ -30,7 +30,7 @@ public class HttpUtil {
      * @return HTTP接口返回值
      */
     public static String request(String url, Connection.Method method, JSONObject data) {
-        logger.info("======request url={} data={}", url, data);
+        logger.debug("======request url={} data={}", url, data);
         String result;
         try {
             Connection conn = Jsoup.connect(url)
@@ -66,7 +66,7 @@ public class HttpUtil {
                 throw new ServiceException(PlatformErrorCode.SERVICE_INTERNAL_ERROR);
             }
 //            logger.info("======request code={} result={}", code, result);
-            logger.info("======request code={}", code);
+            logger.debug("======request code={}", code);
         } catch (IOException e) {
             logger.error("执行" + url + "出错, data=" + data, e);
             throw new ServiceException(PlatformErrorCode.SERVICE_INTERNAL_ERROR, e);

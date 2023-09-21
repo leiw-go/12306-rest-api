@@ -31,7 +31,7 @@ public class UrlConstant {
             "leftTicketDTO.to_station=%s&" +
             "purpose_codes=%s";
 
-    public static String LEFT_TICKET_URL_MAYBE_CHANGE = "leftTicket/query";
+    public static String LEFT_TICKET_URL_MAYBE_CHANGE = "leftTicket/queryZ";
 
     public static String GET_TRAIN_LINE_URL_FMT = BASE_URL +
             "/czxx/queryByTrainNo?" +
@@ -39,4 +39,11 @@ public class UrlConstant {
             "from_station_telecode=%s&" +
             "to_station_telecode=%s&" +
             "depart_date=%s";
+
+    public static String GET_PRICE_URL_FMT = BASE_URL +
+            "/leftTicket/queryTicketPrice?" +
+            "from_station_no=%s&" +
+            "to_station_no=%s&" +
+            "seat_types=%s" +
+            "train_date=%s";
 }

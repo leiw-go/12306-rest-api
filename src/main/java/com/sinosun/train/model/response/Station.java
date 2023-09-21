@@ -55,9 +55,9 @@ public class Station {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("name", name)
-                .add("stationCode", stationCode)
-                .add("pingYin", pingYin)
-                .add("pingYinShort", pingYinShort)
+//                .add("stationCode", stationCode)
+//                .add("pingYin", pingYin)
+//                .add("pingYinShort", pingYinShort)
                 .toString();
     }
 }

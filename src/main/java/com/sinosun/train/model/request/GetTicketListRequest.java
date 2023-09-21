@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -34,6 +35,8 @@ public class GetTicketListRequest {
      */
     @JSONField(format = "yyyy-MM-dd")
     private Date fromDate;
+
+    private List<String> trainType;
 
     /**
      * 是否是学生票(默认成人票)
@@ -85,13 +88,21 @@ public class GetTicketListRequest {
         isStudent = student;
     }
 
+    public List<String> getTrainType() {
+        return trainType;
+    }
+
+    public void setTrainType(List<String> trainType) {
+        this.trainType = trainType;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("fromStationCode", fromStationCode)
                 .add("toStationCode", toStationCode)
-                .add("fromDate", fromDate)
-                .add("isStudent", isStudent)
+//                .add("fromDate", fromDate)
+//                .add("isStudent", isStudent)
                 .toString();
     }
 

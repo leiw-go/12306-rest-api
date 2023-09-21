@@ -8,6 +8,7 @@ import com.sinosun.train.model.request.GetRealRemainTicketsRequest;
 import com.sinosun.train.model.request.GetTicketListRequest;
 import com.sinosun.train.model.request.SearchCityRequest;
 import com.sinosun.train.model.response.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 public class StationUtil {
 
     public static RedisUtils staticRedisUtils;
@@ -82,6 +84,7 @@ public class StationUtil {
         // 根据地面模糊匹配当地所有车站
         List<Station> fromStations = getThisAreaAllStations(request.getFromName());
         List<Station> toStations = getThisAreaAllStations(request.getTargetName());
+        log.info("Already got all from and to station. fromStation: {}, toStation: {}", fromStations, toStations);
 
         List<Ticket> tickets = new ArrayList<>();
         List<TrainLine> trainLines = new ArrayList<>();
@@ -93,6 +96,7 @@ public class StationUtil {
                 model.setToStationCode(toStation.getStationCode());
                 model.setFromDate(request.getFromDate());
                 tickets = TrainWebHelper.getTicketListFrom12306Cn(model);
+                log.info("Already got tickets from 12306 from {}, then we will got lines ,it will take some time...", model);
 
                 // 两地之间的车票查询会查询出所有列车班次，故直接跳出循环
                 if (!tickets.isEmpty()) {
@@ -110,6 +114,7 @@ public class StationUtil {
                     StationUtil.getStationFromName(ticket.getToStation()).getStationCode());
             trainLines.add(line);
         }
+        log.info("Already got all lines {}.", trainLines);
         return trainLines;
     }
 
@@ -128,5 +133,28 @@ public class StationUtil {
             }
         }
         return new Station();
+    }
+
+    public static int getStationNoFromName(String stationName, List<Stop> stops) {
+        for (Stop stop : stops) {
+            if (stationName.equals(stop.getStationName())) {
+                return Integer.parseInt(stop.getStationNo());
+            }
+        }
+        return 0;
+    }
+
+    public static void getTrainCodeMap(int startNo, int endNo, TrainLine line,
+                                                            Map<String, List<String>> targetStationLine) {
+        for (Stop stop : line.getStops()) {
+            if (Integer.parseInt(stop.getStationNo()) <= startNo || Integer.parseInt(stop.getStationNo()) > endNo) {
+                continue;
+            }
+            if (targetStationLine.get(stop.getStationName()) == null) {
+                targetStationLine.put(stop.getStationName(), new ArrayList<String>(){{add(line.getTrainCode());}});
+            } else {
+                targetStationLine.get(stop.getStationName()).add(line.getTrainCode());
+            }
+        }
     }
 }

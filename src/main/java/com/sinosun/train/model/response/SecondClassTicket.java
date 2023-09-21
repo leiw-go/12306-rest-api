@@ -208,4 +208,11 @@ public class SecondClassTicket {
     public void setOtherCheapTicketPrice(BigDecimal otherCheapTicketPrice) {
         this.otherCheapTicketPrice = otherCheapTicketPrice;
     }
+
+    @Override
+    public String toString() {
+        return "SecondClassTicket{" +
+                "trainCode='" + trainCode + '\'' +
+                '}';
+    }
 }
