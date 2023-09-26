@@ -14,12 +14,14 @@ import com.sinosun.train.model.response.Stop;
 import com.sinosun.train.model.response.Ticket;
 import com.sinosun.train.model.response.TrainLine;
 import com.sinosun.train.model.vo.TicketPrice;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.jsoup.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -39,6 +41,13 @@ import java.util.stream.Collectors;
 @Component
 public class TrainWebHelper {
     private static final Logger logger = LoggerFactory.getLogger(TrainWebHelper.class);
+    @Getter
+    private static long SLEEP_TIME;
+
+    @Value("${sleepTime}")
+    public void setSleepTime(long time) {
+        SLEEP_TIME = time;
+    }
 
     /**
      * 从12306获取最新的火车站点数据
@@ -119,7 +128,7 @@ public class TrainWebHelper {
     public static List<Ticket> getTicketListFrom12306Cn(GetTicketListRequest requestBody) throws InterruptedException {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
         logger.debug("start to sleep in getTicketListFrom12306Cn...");
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data);
     }
@@ -132,7 +141,7 @@ public class TrainWebHelper {
     public static List<Ticket> getSpecificTicketListFrom12306Cn(GetTicketListRequest requestBody) throws InterruptedException {
         JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketListUrl(requestBody), Connection.Method.GET, null));
         logger.debug("start to sleep in getSpecificTicketListFrom12306Cn...");
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
         JSONObject data = ret12306.getJSONObject("data");
         return buildTicketList(requestBody, data).stream()
                 .filter(f -> StationUtil.getStationFromName(f.getToStation()).getStationCode().equals(requestBody.getToStationCode())).collect(Collectors.toList());
@@ -346,11 +355,11 @@ public class TrainWebHelper {
      * @param toStationCode 到达站点代码
      * @return 经停信息
      */
-    public static TrainLine getTrainLineFrom12306(String trainNo, String fromDate, String fromStationCode, String toStationCode) {
+    public static TrainLine getTrainLineFrom12306(String trainNo, String fromDate, String fromStationCode, String toStationCode) throws InterruptedException {
         String getTicketLineUrl = String.format(UrlConstant.GET_TRAIN_LINE_URL_FMT, trainNo, fromStationCode, toStationCode, fromDate);
-        JSONObject ret12306 = TrainWebHelper.requestTo12306(getTicketLineUrl);
+        JSONObject ret12306 = JsonUtil.parseObject(HttpUtil.request(getTicketLineUrl, Connection.Method.GET, null));
+        Thread.sleep(SLEEP_TIME);
         JSONArray stops = ret12306.getJSONObject("data").getJSONArray("data");
-
         TrainLine trainLine = new TrainLine();
         if (!CollectionUtils.isEmpty(stops)) {
             JSONObject stopInfoFirst = stops.getJSONObject(0);

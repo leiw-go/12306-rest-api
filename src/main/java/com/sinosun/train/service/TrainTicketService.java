@@ -24,6 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -57,7 +58,7 @@ public class TrainTicketService {
         return new TicketListResult(new TicketList(TrainWebHelper.getTicketListFrom12306Cn(requestBody)));
     }
 
-    public TrainLineResult getTrainLine(GetTrainLineRequest requestBody) {
+    public TrainLineResult getTrainLine(GetTrainLineRequest requestBody) throws InterruptedException {
         requestBody.validate();
         String trainNo = TrainCodeTrainNoMap.getTrainNo(requestBody.getTrainCode());
         // 在获取不到trainNo时，trainCode必须有值
@@ -71,6 +72,8 @@ public class TrainTicketService {
     }
 
     public SecondClassTicketListResult getRemainTicket(GetRealRemainTicketsRequest request) throws InterruptedException {
+        StopWatch watch = new StopWatch();
+        watch.start();
         List<TrainLine> lines = StationUtil.getLinesBetweenStations(request);
         Station fromStation = StationUtil.getStationFromName(request.getFromName());
         List<SecondClassTicket> remainTickets = new ArrayList<>();
@@ -99,6 +102,8 @@ public class TrainTicketService {
                     request.getFromName(), entry.getKey(), entry.getValue());
             remainTickets.addAll(secondClassTickets);
         }
+        watch.stop();
+        logger.info("we got this all train data, it takes {}s", watch.getTotalTimeSeconds());
         return new SecondClassTicketListResult(new SecondClassTicketList(remainTickets));
     }
 

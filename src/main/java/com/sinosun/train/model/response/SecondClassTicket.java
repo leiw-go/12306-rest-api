@@ -65,29 +65,14 @@ public class SecondClassTicket {
     private String secondClassTicKetNum;
 
     /**
-     * 二等座价格
-     */
-    private BigDecimal secondClassTicketPrice;
-
-    /**
      * 	无座剩余票数
      */
     private String noSeatTicketNum;
 
     /**
-     * 无座价格
-     */
-    private BigDecimal noSeatTicketPrice;
-
-    /**
      * 	其他剩余票数
      */
     private String otherCheapTicketNum;
-
-    /**
-     * 其他价格
-     */
-    private BigDecimal otherCheapTicketPrice;
 
     public String getTrainNo() {
         return trainNo;
@@ -169,14 +154,6 @@ public class SecondClassTicket {
         this.secondClassTicKetNum = secondClassTicKetNum;
     }
 
-    public BigDecimal getSecondClassTicketPrice() {
-        return secondClassTicketPrice;
-    }
-
-    public void setSecondClassTicketPrice(BigDecimal secondClassTicketPrice) {
-        this.secondClassTicketPrice = secondClassTicketPrice;
-    }
-
     public String getNoSeatTicketNum() {
         return noSeatTicketNum;
     }
@@ -185,28 +162,12 @@ public class SecondClassTicket {
         this.noSeatTicketNum = noSeatTicketNum;
     }
 
-    public BigDecimal getNoSeatTicketPrice() {
-        return noSeatTicketPrice;
-    }
-
-    public void setNoSeatTicketPrice(BigDecimal noSeatTicketPrice) {
-        this.noSeatTicketPrice = noSeatTicketPrice;
-    }
-
     public String getOtherCheapTicketNum() {
         return otherCheapTicketNum;
     }
 
     public void setOtherCheapTicketNum(String otherCheapTicketNum) {
         this.otherCheapTicketNum = otherCheapTicketNum;
-    }
-
-    public BigDecimal getOtherCheapTicketPrice() {
-        return otherCheapTicketPrice;
-    }
-
-    public void setOtherCheapTicketPrice(BigDecimal otherCheapTicketPrice) {
-        this.otherCheapTicketPrice = otherCheapTicketPrice;
     }
 
     @Override

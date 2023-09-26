@@ -87,7 +87,7 @@ public class TrainController {
 
     @RequestMapping(value = "getTrainLine")
     @ResponseBody
-    public TrainLineResult getTrainLineHandler(HttpServletRequest request, @RequestBody JSONObject requestBody) {
+    public TrainLineResult getTrainLineHandler(HttpServletRequest request, @RequestBody JSONObject requestBody) throws InterruptedException {
         return trainTicketService.getTrainLine(requestBody.toJavaObject(GetTrainLineRequest.class));
     }
 

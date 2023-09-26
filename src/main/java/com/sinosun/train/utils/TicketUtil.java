@@ -13,28 +13,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TicketUtil {
     public static List<Ticket> filterTicketTypeAndNum(GetTicketListRequest requestBody, List<Ticket> tickets) throws InterruptedException {
-        List<Ticket> filterList = tickets.stream().filter(f -> requestBody.getTrainType().contains(f.getTrainType()))
+        return tickets.stream().filter(f -> requestBody.getTrainType().contains(f.getTrainType()))
                 .filter(f -> !"0".equals(f.getEdzNum()))
                 .collect(Collectors.toList());
-        return filterList;
     }
 
     public static List<SecondClassTicket> filterRealWeWantLineAndBuildTickets(List<Ticket> tickets, Map.Entry<String, List<String>> entry) throws InterruptedException {
-        List<SecondClassTicket> secondClassTickets = tickets.stream()
+        return tickets.stream()
                 .filter(f -> entry.getValue().contains(f.getTrainCode()))
                 .map(TicketUtil::transferTicket).collect(Collectors.toList());
-        return secondClassTickets;
     }
 
     private static SecondClassTicket transferTicket(Ticket ticket) {
         SecondClassTicket secondClassTicket = new SecondClassTicket();
         BeanUtils.copyProperties(ticket, secondClassTicket);
         secondClassTicket.setSecondClassTicKetNum(ticket.getEdzNum());
-        secondClassTicket.setSecondClassTicketPrice(ticket.getEdzPrice());
         secondClassTicket.setNoSeatTicketNum(ticket.getWzNum());
-        secondClassTicket.setNoSeatTicketPrice(ticket.getWzPrice());
         secondClassTicket.setOtherCheapTicketNum(ticket.getQtNum());
-        secondClassTicket.setOtherCheapTicketPrice(ticket.getQtPrice());
         return secondClassTicket;
     }
 }

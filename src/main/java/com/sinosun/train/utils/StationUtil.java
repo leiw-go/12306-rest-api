@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StopWatch;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -103,10 +104,13 @@ public class StationUtil {
                     break OUT;
                 }
             }
+            log.info("this shouldn't show");
         }
         if (tickets.isEmpty()) {
             return new ArrayList<>();
         }
+        StopWatch watch = new StopWatch();
+        watch.start();
         for (Ticket ticket : tickets) {
             TrainLine line = TrainWebHelper.getTrainLineFrom12306(ticket.getTrainNo(),
                     TrainWebHelper.convertFromDate(request.getFromDate()),
@@ -114,6 +118,8 @@ public class StationUtil {
                     StationUtil.getStationFromName(ticket.getToStation()).getStationCode());
             trainLines.add(line);
         }
+        watch.stop();
+        log.info("Got lines cost: {}s", watch.getTotalTimeSeconds());
         log.info("Already got all lines {}.", trainLines);
         return trainLines;
     }
